@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Firma del Cliente</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+      background: #f5f5f5;
+    }
+    canvas {
+      border: 2px solid #000;
+      border-radius: 8px;
+      background: #fff;
+    }
+    .btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-clear {
+      background-color: #f44336;
+      color: white;
+    }
+    .btn-save {
+      background-color: #4CAF50;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Firma del Cliente</h2>
+  <p>Por favor, firme con su dedo o lápiz sobre la línea</p>
+  <canvas id="signature-pad" width="300" height="200"></canvas><br>
+
+  <button class="btn btn-clear" onclick="clearSignature()">Borrar</button>
+  <button class="btn btn-save" onclick="saveSignature()">Guardar Firma</button>
+
+  <form id="signature-form" method="POST" action="https://formspree.io/f/yourFormID" style="display: none;">
+    <input type="hidden" name="signature" id="signature-image">
+  </form>
+
+  <script>
+    const canvas = document.getElementById('signature-pad');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mouseup', endDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('touchstart', startDraw);
+    canvas.addEventListener('touchend', endDraw);
+    canvas.addEventListener('touchmove', drawTouch);
+
+    function startDraw(e) {
+      drawing = true;
+      ctx.beginPath();
+      ctx.moveTo(getX(e), getY(e));
+      e.preventDefault();
+    }
+
+    function endDraw(e) {
+      drawing = false;
+      e.preventDefault();
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      ctx.lineTo(getX(e), getY(e));
+      ctx.stroke();
+    }
+
+    function drawTouch(e) {
+      if (!drawing) return;
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+      ctx.stroke();
+      e.preventDefault();
+    }
+
+    function getX(e) {
+      return (e.touches ? e.touches[0].clientX : e.clientX) - canvas.getBoundingClientRect().left;
+    }
+
+    function getY(e) {
+      return (e.touches ? e.touches[0].clientY : e.clientY) - canvas.getBoundingClientRect().top;
+    }
+
+    function clearSignature() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function saveSignature() {
+      const dataURL = canvas.toDataURL();
+      document.getElementById('signature-image').value = dataURL;
+      document.getElementById('signature-form').submit();
+    }
+  </script>
+
+</body>
+</html>
